@@ -2,31 +2,70 @@
 <html lang="en-US">
   <head>
     <meta charset="UTF-8">
+    <title>Test Drag and Drop</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <link rel="stylesheet" href="style.css">
-    <style>
-      #dnd-zone {
-        border: 2px dashed gray;
-        height: 256px;
-        width: 256px;
-      }
-    </style>
     <script src="CustomConsole.js" type="module"></script>
     <script type="module">
       import register from "./CustomConsole.js";
       register((level, s) => { let d=document; d.getElementById('output').appendChild(d.createElement('P')).appendChild(d.createElement('label')).appendChild(d.createTextNode(s)) });
     </script>
     <script type="module">
+      function traverse(item, path) {
+        path = path || "";
+        if (item.isFile) {
+          item.file(file => {
+            console.log(`${path}${file.name} (type: ${file.type}, size: ${file.size})`);
+          });
+        } else if (item.isDirectory) {
+          var reader = item.createReader();
+          reader.readEntries(entries => {
+            for (var i = 0; i < entries.length; ++i) {
+              traverse(entries[i], path + item.name + "/");
+            }
+          });
+        }
+      }
+
       function onLoad() {
-        const dnd = document.getElementById('dnd-zone');
+        const dropzone = document.querySelector('.dropzone');
+        if (window.FileList && window.File) {
+          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(type => {
+            dropzone.addEventListener(type, event => {
+              event.preventDefault();
+              event.stopPropagation();
+            });
+          });
+
+          ['dragenter'].forEach(type => {
+            dropzone.addEventListener(type, () => { dropzone.classList.add("active"); });
+          });
+
+          ['dragleave', 'drop'].forEach(type => {
+            dropzone.addEventListener(type, () => { dropzone.classList.remove("active"); });
+          });
+
+          dropzone.addEventListener('dragover', event => {
+            event.dataTransfer.dropEffect = 'copy';
+          });
+
+          dropzone.addEventListener('drop', event => {
+            var items = event.dataTransfer.items;
+            for (var i = 0; i < items.length; ++i) {
+              var item = items[i].webkitGetAsEntry();
+              if (item) {
+                traverse(item);
+              }
+            }
+          });
+        }
       }
       window.addEventListener('load', onLoad);
     </script>
-    <title>Test Drag and Drop</title>
   </head>
   <body>
-    <div id="dnd-zone"></div>
+    <div class="dropzone"></div>
     <div class="code" id="output"></div>
   </body>
 </html>

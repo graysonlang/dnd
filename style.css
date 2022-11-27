@@ -19,3 +19,13 @@ body {
 * {
   box-sizing: border-box;
 }
+
+.dropzone {
+  border: 2px dashed gray;
+  height: 128px;
+  width: 256px;
+}
+
+.dropzone.active {
+  border: solid green;
+}
