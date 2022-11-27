@@ -1,0 +1,21 @@
+body {
+  background-color: #111;
+  color: #ccc;
+  font-family: sans-serif;
+  font-size: 11pt;
+  margin: 32px;
+}
+
+.code {
+  font-family: Menlo, Monaco, monospace;
+  white-space: pre;
+}
+
+.code p {
+  margin: 0;
+  margin-bottom: .5em;
+}
+
+* {
+  box-sizing: border-box;
+}
