@@ -1,25 +1,16 @@
-body {
-  font-family: sans-serif;
-  font-size: 11pt;
-  margin: 0px;
-}
-
 * {
   box-sizing: border-box;
 }
 
-@page {
-  size: letter landscape;
-  margin: 20mm;
+body {
+  font-family: sans-serif;
+  font-size: 12pt;
+  margin: 0px;
+  padding: 0px;
 }
 
-@media only screen {
-  body {
-    background-color: #111;
-    color: #ccc;
-    font-family: sans-serif;
-    font-size: 11pt;
-  }
+img {
+  break-inside: avoid;
 }
 
 .dropzone {
@@ -39,18 +30,45 @@ body {
   opacity: 1;
 }
 
-#image-preview {
-/*  margin-top:20px;*/
+.grid {
+  width: 100%;
+  padding: 10px;
 }
 
-#image-preview .image-view {
+.grid .cell {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: .5px dotted #ffff;
+  break-inside: avoid;
   display: inline-block;
-  position:relative;
-  margin-right: 8px;
-  margin-bottom: 8px;
+  margin: 10px;
+  padding: 10px;
+  text-align: center;
+  width: 2in;
 }
 
-#image-preview .image-view img {
-    max-width: 1.75in;
-    max-height: 2in;
+.grid .cell img {
+  max-width: 1.5in;
+  max-height: 2in;
+}
+
+.grid .cell .sku {
+  font-weight: bold;
+}
+
+@media only screen {
+  body {
+    background-color: #111;
+    color: #ccc;
+  }
+}
+
+@media only print {
+  .grid .cell {
+    border-color : #000;
+  }
+}
+
+@page {
+  size: letter landscape;
+  margin: 20mm;
 }

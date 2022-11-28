@@ -7,18 +7,68 @@
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <script type="module">
+      var filesAwaitingRead = 0;
+      var cells = [];
+
+      function attachThumbnails() {
+        cells.sort((a, b) => {
+          const nameA = a.name.toUpperCase();
+          const nameB = b.name.toUpperCase();
+          if (nameA > nameB) return 1;
+          if (nameA < nameB) return -1;
+          return 0;
+        });
+        const grid = document.querySelector('.grid');
+        for (var item of cells) {
+          grid.appendChild(item.cell);
+        }
+      }
+
+      const sku_regex = /^([^ -]+)/ig
+      function loadImage(file) {
+        let cell = document.createElement("div");
+        cell.className = "cell";
+        var img = cell.appendChild(document.createElement("img"));
+        var sku = cell.appendChild(document.createElement("div"));
+        sku.className = "sku";
+        let found = file.name.match(sku_regex);
+        if (found) {
+          sku.innerHTML = found[0];
+        }
+        const reader = new FileReader();
+        reader.addEventListener('load', event => {
+          img.src = event.target.result;
+        });
+        reader.readAsDataURL(file);
+        return cell;
+      }
+
+      function handleFileRead(file, path) {
+        filesAwaitingRead--;
+        switch(file.type) {
+          case 'image/jpeg':
+          case 'image/png':
+          case 'image/gif':
+          // console.log(`${path}${file.name} (type: ${file.type}, size: ${file.size})`);
+          cells.push(
+            {
+              name: path + file.name,
+              cell: loadImage(file)
+            }
+          );
+        }
+        if (filesAwaitingRead == 0) {
+          attachThumbnails();
+        }
+      }
+
+      function handleFileReadError(error) {
+        filesAwaitingRead--;
+      }
+
       function onLoad() {
-        const dropzone = document.querySelector('.dropzone');
-
-        const imagePreviewRegion = document.getElementById("image-preview");
-
         if (window.FileList && window.File) {
-          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(type => {
-            window.addEventListener(type, event => {
-              event.preventDefault();
-              event.stopPropagation();
-            });
-          });
+          const dropzone = document.querySelector('.dropzone');
 
           ['dragenter'].forEach(type => {
             window.addEventListener(type, () => { dropzone.classList.add("active"); });
@@ -28,103 +78,47 @@
             window.addEventListener(type, () => { dropzone.classList.remove("active"); });
           });
 
+          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(type => {
+            window.addEventListener(type, event => {
+              event.preventDefault();
+              event.stopPropagation();
+            });
+          });
+
           window.addEventListener('dragover', event => {
             event.dataTransfer.dropEffect = 'copy';
           });
 
           window.addEventListener('drop', event => {
-            let images = [];
             var items = event.dataTransfer.items;
-            for (var i = 0; i < items.length; ++i) {
-              var item = items[i].webkitGetAsEntry();
-              if (item) {
-                traverse(item, '', images);
-              }
+            for (var item of items) {
+              traverse(item.webkitGetAsEntry());;
             }
-            // console.log(imageFiles)
-
-            // var files = event.dataTransfer.files;
-            // for (var i = 0, len = files.length; i < len; i++) {
-            //   let file = files[i];
-            //   if (validateImage(file)) {
-            //     loadImage(file);
-            //   }
-            // }
           });
         }
 
-        function readImage(file) {
-          const reader = new FileReader();
-          reader.addEventListener('load', (event) => {
-            // uploaded_image = event.target.result;
-            // document.querySelector("#image_drop_area").style.backgroundImage = `url(${uploaded_image})`;
-            document.getElementById('body').appendChild(img);
-
-          });
-          reader.readAsDataURL(file);
-        }
-
-        function traverse(item, path, images) {
-          path = path || "";
-          if (item.isFile) {
-            item.file(file => {
-              console.log(`${path}${file.name} (type: ${file.type}, size: ${file.size})`);
-              switch(file.type) {
-                case 'image/jpeg':
-                case 'image/png':
-                case 'image/gif':
-                  imageFiles = imageFiles.concat(item);
-                  console.log(imageFiles)
-  //   fileList = event.dataTransfer.files;
-  //   document.querySelector("#file_name").textContent = fileList[0].name;
-  //   readImage(fileList[0]);
-  // });
-              }
-            });
-          } else if (item.isDirectory) {
-            var reader = item.createReader();
-            reader.readEntries(entries => {
-              for (var i = 0; i < entries.length; ++i) {
-                imageFiles = imageFiles.concat(traverse(entries[i], path + item.name + "/"));
-                console.log(imageFiles)
-              }
-            });
+        function traverse(entry, path) {
+          if (entry) {
+            path = path || "";
+            if (entry.isFile) {
+              filesAwaitingRead++;
+              entry.file(
+                file => handleFileRead(file, path),
+                file => handleFileReadError(exception)
+              );
+            } else if (entry.isDirectory) {
+              var reader = entry.createReader();
+              reader.readEntries(entries => {
+                for (var i = 0; i < entries.length; ++i) {
+                  traverse(entries[i], path + entry.name + "/");
+                }
+              });
+            }
           }
-          return imageFiles;
-        }
-
-        function validateImage(image) {
-          var validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-          if (validTypes.indexOf(image.type) === -1) {
-            return false;
-          }
-          var maxSizeInBytes = 10e6; // 10MB
-          if (image.size > maxSizeInBytes) {
-            alert("File too large");
-            return false;
-          }
-          return true;
-        }
-
-        function loadImage(image) {
-          var imgView = document.createElement("div");
-          imgView.className = "image-view";
-          imagePreviewRegion.appendChild(imgView);
-          var img = document.createElement("img");
-          imgView.appendChild(img);
-          var reader = new FileReader();
-          reader.onload = function(event) {
-            img.src = event.target.result;
-          }
-          reader.readAsDataURL(image);
         }
       }
       window.addEventListener('load', onLoad);
     </script>
   </head>
-  <body>
-    <div class="dropzone"></div>
-    <div id="image-preview"></div>
-</div>
-  </body>
+  <body><div class="dropzone"></div><div class="grid"></div></body>
 </html>
