@@ -12,52 +12,82 @@
       register((level, s) => { let d=document; d.getElementById('output').appendChild(d.createElement('P')).appendChild(d.createElement('label')).appendChild(d.createTextNode(s)) });
     </script>
     <script type="module">
+      function readImage(file) {
+        const reader = new FileReader();
+        reader.addEventListener('load', (event) => {
+          // uploaded_image = event.target.result;
+          // document.querySelector("#image_drop_area").style.backgroundImage = `url(${uploaded_image})`;
+          document.getElementById('body').appendChild(img);
+
+        });
+        reader.readAsDataURL(file);
+      }
+
       function traverse(item, path) {
+        let images = [];
         path = path || "";
         if (item.isFile) {
           item.file(file => {
             console.log(`${path}${file.name} (type: ${file.type}, size: ${file.size})`);
+            switch(file.type) {
+              case 'image/jpeg':
+              case 'image/png':
+                images.concat(file);
+
+
+//   fileList = event.dataTransfer.files;
+//   document.querySelector("#file_name").textContent = fileList[0].name;
+//   readImage(fileList[0]);
+// });
+
+// Converts the image into a data URI
+
+
+            }
           });
         } else if (item.isDirectory) {
           var reader = item.createReader();
           reader.readEntries(entries => {
             for (var i = 0; i < entries.length; ++i) {
-              traverse(entries[i], path + item.name + "/");
+              images.concat(traverse(entries[i], path + item.name + "/"));
             }
           });
         }
+        return images;
       }
 
       function onLoad() {
         const dropzone = document.querySelector('.dropzone');
         if (window.FileList && window.File) {
           ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(type => {
-            dropzone.addEventListener(type, event => {
+            window.addEventListener(type, event => {
               event.preventDefault();
               event.stopPropagation();
             });
           });
 
           ['dragenter'].forEach(type => {
-            dropzone.addEventListener(type, () => { dropzone.classList.add("active"); });
+            window.addEventListener(type, () => { dropzone.classList.add("active"); });
           });
 
           ['dragleave', 'drop'].forEach(type => {
-            dropzone.addEventListener(type, () => { dropzone.classList.remove("active"); });
+            window.addEventListener(type, () => { dropzone.classList.remove("active"); });
           });
 
-          dropzone.addEventListener('dragover', event => {
+          window.addEventListener('dragover', event => {
             event.dataTransfer.dropEffect = 'copy';
           });
 
-          dropzone.addEventListener('drop', event => {
+          window.addEventListener('drop', event => {
+            let images = [];
             var items = event.dataTransfer.items;
             for (var i = 0; i < items.length; ++i) {
               var item = items[i].webkitGetAsEntry();
               if (item) {
-                traverse(item);
+                images.concat(traverse(item));
               }
             }
+            // console.log(`Images: ${images.length}`)
           });
         }
       }
@@ -67,5 +97,6 @@
   <body>
     <div class="dropzone"></div>
     <div class="code" id="output"></div>
+</div>
   </body>
 </html>
