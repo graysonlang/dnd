@@ -6,11 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <link rel="stylesheet" href="style.css">
-    <script src="CustomConsole.js" type="module"></script>
-    <script type="module">
-      import register from "./CustomConsole.js";
-      register((level, s) => { let d=document; d.getElementById('output').appendChild(d.createElement('P')).appendChild(d.createElement('label')).appendChild(d.createTextNode(s)) });
-    </script>
     <script type="module">
       function readImage(file) {
         const reader = new FileReader();
@@ -58,6 +53,9 @@
 
       function onLoad() {
         const dropzone = document.querySelector('.dropzone');
+
+        const imagePreviewRegion = document.getElementById("image-preview");
+
         if (window.FileList && window.File) {
           ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(type => {
             window.addEventListener(type, event => {
@@ -79,24 +77,83 @@
           });
 
           window.addEventListener('drop', event => {
-            let images = [];
+            // let images = [];
             var items = event.dataTransfer.items;
-            for (var i = 0; i < items.length; ++i) {
-              var item = items[i].webkitGetAsEntry();
-              if (item) {
-                images.concat(traverse(item));
-              }
-            }
+            // for (var i = 0; i < items.length; ++i) {
+            //   var item = items[i].webkitGetAsEntry();
+            //   if (item) {
+            //     images.concat(traverse(item));
+            //   }
+            // }
             // console.log(`Images: ${images.length}`)
+
+            // handleFiles(items);
+            handleDrop(event)
           });
         }
+
+function handleDrop(e) {
+  var dt = e.dataTransfer,
+    files = dt.files;
+  if (files.length) {
+    handleFiles(files);
+  }
+}
+
+
+function handleFiles(files) {
+  for (var i = 0, len = files.length; i < len; i++) {
+    let file = files[i];
+    if (validateImage(file))
+      previewAnduploadImage(file);
+  }
+}
+
+function validateImage(image) {
+  // check the type
+  var validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+  if (validTypes.indexOf( image.type ) === -1) {
+    alert("Invalid File Type");
+    return false;
+  }
+  // check the size
+  var maxSizeInBytes = 10e6; // 10MB
+  if (image.size > maxSizeInBytes) {
+    alert("File too large");
+    return false;
+  }
+  return true;
+}
+
+function previewAnduploadImage(image) {
+  // container
+  var imgView = document.createElement("div");
+  imgView.className = "image-view";
+  imagePreviewRegion.appendChild(imgView);
+
+  // previewing image
+  var img = document.createElement("img");
+  imgView.appendChild(img);
+
+  // // progress overlay
+  // var overlay = document.createElement("div");
+  // overlay.className = "overlay";
+  // imgView.appendChild(overlay);
+
+  // read the image...
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    img.src = e.target.result;
+  }
+  reader.readAsDataURL(image);
+}
       }
       window.addEventListener('load', onLoad);
     </script>
   </head>
   <body>
     <div class="dropzone"></div>
-    <div class="code" id="output"></div>
+    <div id="image-preview"></div>
 </div>
   </body>
 </html>
