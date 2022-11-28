@@ -7,50 +7,6 @@
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <script type="module">
-      function readImage(file) {
-        const reader = new FileReader();
-        reader.addEventListener('load', (event) => {
-          // uploaded_image = event.target.result;
-          // document.querySelector("#image_drop_area").style.backgroundImage = `url(${uploaded_image})`;
-          document.getElementById('body').appendChild(img);
-
-        });
-        reader.readAsDataURL(file);
-      }
-
-      function traverse(item, path) {
-        let images = [];
-        path = path || "";
-        if (item.isFile) {
-          item.file(file => {
-            console.log(`${path}${file.name} (type: ${file.type}, size: ${file.size})`);
-            switch(file.type) {
-              case 'image/jpeg':
-              case 'image/png':
-                images.concat(file);
-
-
-//   fileList = event.dataTransfer.files;
-//   document.querySelector("#file_name").textContent = fileList[0].name;
-//   readImage(fileList[0]);
-// });
-
-// Converts the image into a data URI
-
-
-            }
-          });
-        } else if (item.isDirectory) {
-          var reader = item.createReader();
-          reader.readEntries(entries => {
-            for (var i = 0; i < entries.length; ++i) {
-              images.concat(traverse(entries[i], path + item.name + "/"));
-            }
-          });
-        }
-        return images;
-      }
-
       function onLoad() {
         const dropzone = document.querySelector('.dropzone');
 
@@ -77,76 +33,91 @@
           });
 
           window.addEventListener('drop', event => {
-            // let images = [];
+            let images = [];
             var items = event.dataTransfer.items;
-            // for (var i = 0; i < items.length; ++i) {
-            //   var item = items[i].webkitGetAsEntry();
-            //   if (item) {
-            //     images.concat(traverse(item));
+            for (var i = 0; i < items.length; ++i) {
+              var item = items[i].webkitGetAsEntry();
+              if (item) {
+                traverse(item, '', images);
+              }
+            }
+            // console.log(imageFiles)
+
+            // var files = event.dataTransfer.files;
+            // for (var i = 0, len = files.length; i < len; i++) {
+            //   let file = files[i];
+            //   if (validateImage(file)) {
+            //     loadImage(file);
             //   }
             // }
-            // console.log(`Images: ${images.length}`)
-
-            // handleFiles(items);
-            handleDrop(event)
           });
         }
 
-function handleDrop(e) {
-  var dt = e.dataTransfer,
-    files = dt.files;
-  if (files.length) {
-    handleFiles(files);
-  }
-}
+        function readImage(file) {
+          const reader = new FileReader();
+          reader.addEventListener('load', (event) => {
+            // uploaded_image = event.target.result;
+            // document.querySelector("#image_drop_area").style.backgroundImage = `url(${uploaded_image})`;
+            document.getElementById('body').appendChild(img);
 
+          });
+          reader.readAsDataURL(file);
+        }
 
-function handleFiles(files) {
-  for (var i = 0, len = files.length; i < len; i++) {
-    let file = files[i];
-    if (validateImage(file))
-      previewAnduploadImage(file);
-  }
-}
+        function traverse(item, path, images) {
+          path = path || "";
+          if (item.isFile) {
+            item.file(file => {
+              console.log(`${path}${file.name} (type: ${file.type}, size: ${file.size})`);
+              switch(file.type) {
+                case 'image/jpeg':
+                case 'image/png':
+                case 'image/gif':
+                  imageFiles = imageFiles.concat(item);
+                  console.log(imageFiles)
+  //   fileList = event.dataTransfer.files;
+  //   document.querySelector("#file_name").textContent = fileList[0].name;
+  //   readImage(fileList[0]);
+  // });
+              }
+            });
+          } else if (item.isDirectory) {
+            var reader = item.createReader();
+            reader.readEntries(entries => {
+              for (var i = 0; i < entries.length; ++i) {
+                imageFiles = imageFiles.concat(traverse(entries[i], path + item.name + "/"));
+                console.log(imageFiles)
+              }
+            });
+          }
+          return imageFiles;
+        }
 
-function validateImage(image) {
-  // check the type
-  var validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-  if (validTypes.indexOf( image.type ) === -1) {
-    alert("Invalid File Type");
-    return false;
-  }
-  // check the size
-  var maxSizeInBytes = 10e6; // 10MB
-  if (image.size > maxSizeInBytes) {
-    alert("File too large");
-    return false;
-  }
-  return true;
-}
+        function validateImage(image) {
+          var validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+          if (validTypes.indexOf(image.type) === -1) {
+            return false;
+          }
+          var maxSizeInBytes = 10e6; // 10MB
+          if (image.size > maxSizeInBytes) {
+            alert("File too large");
+            return false;
+          }
+          return true;
+        }
 
-function previewAnduploadImage(image) {
-  // container
-  var imgView = document.createElement("div");
-  imgView.className = "image-view";
-  imagePreviewRegion.appendChild(imgView);
-
-  // previewing image
-  var img = document.createElement("img");
-  imgView.appendChild(img);
-
-  // // progress overlay
-  // var overlay = document.createElement("div");
-  // overlay.className = "overlay";
-  // imgView.appendChild(overlay);
-
-  // read the image...
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    img.src = e.target.result;
-  }
-  reader.readAsDataURL(image);
-}
+        function loadImage(image) {
+          var imgView = document.createElement("div");
+          imgView.className = "image-view";
+          imagePreviewRegion.appendChild(imgView);
+          var img = document.createElement("img");
+          imgView.appendChild(img);
+          var reader = new FileReader();
+          reader.onload = function(event) {
+            img.src = event.target.result;
+          }
+          reader.readAsDataURL(image);
+        }
       }
       window.addEventListener('load', onLoad);
     </script>
