@@ -39,7 +39,7 @@
         if (found) {
           let sku_prefix = chunks.shift();
           let sku_suffix = chunks.shift();
-          sku.innerHTML = sku_prefix + "-" + sku_suffix + "<br>" + chunks.join("-");
+          sku.innerHTML = sku_prefix + "<br>" + sku_suffix + "<br>&nbsp;<br>" + chunks.join("-");
         }
         const reader = new FileReader();
         reader.addEventListener('load', event => {
