@@ -24,16 +24,22 @@
         }
       }
 
-      const sku_regex = /^([^ -]+)/ig
+      const sku_regex = /^([^ -]+-)(\w+)/ig
       function loadImage(file) {
         let cell = document.createElement("div");
         cell.className = "cell";
         var img = cell.appendChild(document.createElement("img"));
         var sku = cell.appendChild(document.createElement("div"));
         sku.className = "sku";
-        let found = file.name.match(sku_regex);
+        let filename_chunks = file.name.split('.');
+        filename_chunks.pop();
+        let filename = filename_chunks.join('.');
+        let chunks = filename.split('-');
+        let found = filename.match(sku_regex);
         if (found) {
-          sku.innerHTML = found[0];
+          let sku_prefix = chunks.shift();
+          let sku_suffix = chunks.shift();
+          sku.innerHTML = sku_prefix + "-" + sku_suffix + "<br>" + chunks.join("-");
         }
         const reader = new FileReader();
         reader.addEventListener('load', event => {
@@ -120,5 +126,6 @@
       window.addEventListener('load', onLoad);
     </script>
   </head>
-  <body><div class="dropzone"></div><div class="grid"></div></body>
+  <body><div class="grid"></div><div class="dropzone"></div>
+  </body>
 </html>
