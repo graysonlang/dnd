@@ -35,7 +35,8 @@ img {
 
 .grid .cell {
   box-sizing: border-box;
-  border: .5px solid black;
+  border: .5px solid;
+  border-color:  black;
   break-inside: avoid;
   display: inline-block;
   position: relative;
@@ -79,4 +80,15 @@ img {
 @page {
   size: letter portrait;
   margin: .25in 0 0 .625in;
+}
+
+@media only screen {
+  body {
+    background-color: #111;
+    color: #ddd;
+  }
+
+  .grid .cell {
+    border-color: #ddd;
+  }
 }
