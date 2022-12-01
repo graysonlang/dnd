@@ -67,12 +67,42 @@
         }
       }
 
+      const sku_regex = /^([^ -]+-)(\w+)/ig
       function process_file_entries(file_entries) {
         let entry = file_entries.shift();
         if (entry) {
           entry.file(
             file => {
-              load_image(file, () => setTimeout(process_file_entries(file_entries)));
+              switch(file.type) {
+              case 'image/jpeg':
+              case 'image/png':
+                // console.log(`${entry.fullPath} (type: ${file.type}, size: ${file.size})`);
+                const reader = new FileReader();
+                reader.addEventListener('load', event => {
+                  const grid = document.querySelector('.grid');
+                  let cell = grid.appendChild(document.createElement("div"));
+                  cell.className = "cell";
+                  var img = cell.appendChild(document.createElement("img"));
+                  img.src = event.target.result;
+                  var sku = cell.appendChild(document.createElement("div"));
+                  sku.className = "sku";
+                  let filename_chunks = file.name.split('.');
+                  filename_chunks.pop();
+                  let filename = filename_chunks.join('.');
+                  let chunks = filename.split('-');
+                  let found = filename.match(sku_regex);
+                  if (found) {
+                    let sku_prefix = chunks.shift();
+                    let sku_suffix = chunks.shift();
+                    sku.innerHTML = sku_prefix + "<br>" + sku_suffix + "<br>&nbsp;<br>" + chunks.join("-");
+                  }
+                  setTimeout(process_file_entries(file_entries));
+                });
+                reader.readAsDataURL(file);
+                break;
+              default:
+                setTimeout(process_file_entries(file_entries));
+              }
             },
             error => {
               console.log(entry.fullPath);
@@ -82,62 +112,6 @@
           );
         }
       }
-
-      function load_image(file, callback) {
-        const reader = new FileReader();
-        reader.addEventListener('load', event => {
-          // img.src = event.target.result;
-          console.log(event);
-          callback();
-        });
-        reader.readAsDataURL(file);
-      }
-
-      // function attachThumbnails() {
-      //   const grid = document.querySelector('.grid');
-      //     grid.appendChild(item.cell);
-      // }
-
-      // function loadImage(file) {
-      //   let cell = document.createElement("div");
-      //   cell.className = "cell";
-      //   var img = cell.appendChild(document.createElement("img"));
-      //   var sku = cell.appendChild(document.createElement("div"));
-      //   sku.className = "sku";
-      //   let filename_chunks = file.name.split('.');
-      //   filename_chunks.pop();
-      //   let filename = filename_chunks.join('.');
-      //   let chunks = filename.split('-');
-      //   let found = filename.match(sku_regex);
-      //   if (found) {
-      //     let sku_prefix = chunks.shift();
-      //     let sku_suffix = chunks.shift();
-      //     sku.innerHTML = sku_prefix + "<br>" + sku_suffix + "<br>&nbsp;<br>" + chunks.join("-");
-      //   }
-      //   const reader = new FileReader();
-      //   reader.addEventListener('load', event => {
-      //     img.src = event.target.result;
-      //   });
-      //   reader.readAsDataURL(file);
-      //   return cell;
-      // }
-
-      // function handleFileRead(file, path) {
-      //   switch(file.type) {
-      //     case 'image/jpeg':
-      //     case 'image/png':
-      //     // console.log(`${path} (type: ${file.type}, size: ${file.size})`);
-      //     cells.push(
-      //       {
-      //         name: path + file.name,
-      //         cell: loadImage(file)
-      //       }
-      //     );
-      //   }
-      //   if (filesAwaitingRead == 0) {
-      //     attachThumbnails();
-      //   }
-      // }
     </script>
   </head>
   <body></body>
