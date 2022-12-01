@@ -7,66 +7,6 @@
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <script type="module">
-      var filesAwaitingRead = 0;
-      var cells = [];
-
-      function attachThumbnails() {
-        cells.sort((a, b) => {
-          const nameA = a.name.toUpperCase();
-          const nameB = b.name.toUpperCase();
-          if (nameA > nameB) return 1;
-          if (nameA < nameB) return -1;
-          return 0;
-        });
-        const grid = document.querySelector('.grid');
-        for (var item of cells) {
-          grid.appendChild(item.cell);
-        }
-      }
-
-      const sku_regex = /^([^ -]+-)(\w+)/ig
-      function loadImage(file) {
-        let cell = document.createElement("div");
-        cell.className = "cell";
-        var img = cell.appendChild(document.createElement("img"));
-        var sku = cell.appendChild(document.createElement("div"));
-        sku.className = "sku";
-        let filename_chunks = file.name.split('.');
-        filename_chunks.pop();
-        let filename = filename_chunks.join('.');
-        let chunks = filename.split('-');
-        let found = filename.match(sku_regex);
-        if (found) {
-          let sku_prefix = chunks.shift();
-          let sku_suffix = chunks.shift();
-          sku.innerHTML = sku_prefix + "<br>" + sku_suffix + "<br>&nbsp;<br>" + chunks.join("-");
-        }
-        const reader = new FileReader();
-        reader.addEventListener('load', event => {
-          img.src = event.target.result;
-        });
-        reader.readAsDataURL(file);
-        return cell;
-      }
-
-      function handleFileRead(file, path) {
-        filesAwaitingRead--;
-        switch(file.type) {
-          case 'image/jpeg':
-          case 'image/png':
-          // console.log(`${path} (type: ${file.type}, size: ${file.size})`);
-          cells.push(
-            {
-              name: path + file.name,
-              cell: loadImage(file)
-            }
-          );
-        }
-        if (filesAwaitingRead == 0) {
-          attachThumbnails();
-        }
-      }
-
       window.addEventListener('load', () => {
         if (window.FileList && window.File) {
           const grid = document.body.appendChild(document.createElement("div"));
@@ -116,42 +56,88 @@
           }
         }
         if (!dirs_to_load) {
+          file_entries.sort((a, b) => {
+            const nameA = a.fullPath.toUpperCase();
+            const nameB = b.fullPath.toUpperCase();
+            if (nameA > nameB) return 1;
+            if (nameA < nameB) return -1;
+            return 0;
+          });
           setTimeout(callback(file_entries));
         }
       }
 
-      function process_file_entries(entries) {
-        entries.sort((a, b) => {
-          const nameA = a.fullPath.toUpperCase();
-          const nameB = b.fullPath.toUpperCase();
-          if (nameA > nameB) return 1;
-          if (nameA < nameB) return -1;
-          return 0;
-        });
-        if (entries.length) {
-          setTimeout(generate_thumbnails(entries));
-        }
-      }
-
-      function generate_thumbnails(entries) {
-        let entry = entries.shift();
+      function process_file_entries(file_entries) {
+        let entry = file_entries.shift();
         if (entry) {
-          console.log(entry.fullPath);
           entry.file(
             file => {
-              filesAwaitingRead--;
-              console.log(entry.fullPath);
-              setTimeout(generate_thumbnails(entries));
+              load_image(file, () => setTimeout(process_file_entries(file_entries)));
             },
             error => {
-              filesAwaitingRead--;
               console.log(entry.fullPath);
               console.log(error);
-              setTimeout(generate_thumbnails(entries));
+              setTimeout(process_file_entries(file_entries));
             }
           );
         }
       }
+
+      function load_image(file, callback) {
+        const reader = new FileReader();
+        reader.addEventListener('load', event => {
+          // img.src = event.target.result;
+          console.log(event);
+          callback();
+        });
+        reader.readAsDataURL(file);
+      }
+
+      // function attachThumbnails() {
+      //   const grid = document.querySelector('.grid');
+      //     grid.appendChild(item.cell);
+      // }
+
+      // function loadImage(file) {
+      //   let cell = document.createElement("div");
+      //   cell.className = "cell";
+      //   var img = cell.appendChild(document.createElement("img"));
+      //   var sku = cell.appendChild(document.createElement("div"));
+      //   sku.className = "sku";
+      //   let filename_chunks = file.name.split('.');
+      //   filename_chunks.pop();
+      //   let filename = filename_chunks.join('.');
+      //   let chunks = filename.split('-');
+      //   let found = filename.match(sku_regex);
+      //   if (found) {
+      //     let sku_prefix = chunks.shift();
+      //     let sku_suffix = chunks.shift();
+      //     sku.innerHTML = sku_prefix + "<br>" + sku_suffix + "<br>&nbsp;<br>" + chunks.join("-");
+      //   }
+      //   const reader = new FileReader();
+      //   reader.addEventListener('load', event => {
+      //     img.src = event.target.result;
+      //   });
+      //   reader.readAsDataURL(file);
+      //   return cell;
+      // }
+
+      // function handleFileRead(file, path) {
+      //   switch(file.type) {
+      //     case 'image/jpeg':
+      //     case 'image/png':
+      //     // console.log(`${path} (type: ${file.type}, size: ${file.size})`);
+      //     cells.push(
+      //       {
+      //         name: path + file.name,
+      //         cell: loadImage(file)
+      //       }
+      //     );
+      //   }
+      //   if (filesAwaitingRead == 0) {
+      //     attachThumbnails();
+      //   }
+      // }
     </script>
   </head>
   <body></body>
