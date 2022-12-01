@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <script type="module">
       const desired_aspect_ratio = 7 / 4; // 1.75 : 1, from 2.625 x 1.5
-      const desired_height = 350;
+      const desired_height = 700;
       const desired_width = desired_height / desired_aspect_ratio;
 
       const canvas = document.createElement('canvas');
@@ -40,10 +40,17 @@
       });
 
       async function scanItems(items, callback) {
-        var dirs_to_load = 0;
+        let dirs_to_load = 0;
         let file_entries = [];
         let trampoline = () => {
           if (file_entries && file_entries.length) {
+            file_entries.sort((a, b) => {
+              const nameA = a.fullPath.toUpperCase();
+              const nameB = b.fullPath.toUpperCase();
+              if (nameA > nameB) return 1;
+              if (nameA < nameB) return -1;
+              return 0;
+            });
             setTimeout(callback(file_entries));
           }
         }
@@ -58,7 +65,7 @@
             }
           } else if (entry.isDirectory) {
             ++dirs_to_load;
-            var reader = entry.createReader();
+            let reader = entry.createReader();
             reader.readEntries((entries) => {
               entries.forEach((entry) => {
                 traverse(entry);
@@ -76,13 +83,6 @@
           }
         }
         if (!dirs_to_load) {
-          file_entries.sort((a, b) => {
-            const nameA = a.fullPath.toUpperCase();
-            const nameB = b.fullPath.toUpperCase();
-            if (nameA > nameB) return 1;
-            if (nameA < nameB) return -1;
-            return 0;
-          });
           trampoline();
         }
       }
@@ -112,11 +112,12 @@
                     canvas.width = scaled_width;
                     canvas.height = scaled_height;
                     context.drawImage(texture, 0, 0, scaled_width, scaled_height);
+                    texture = null;
                     const grid = document.querySelector('.grid');
                     let cell = grid.appendChild(document.createElement("div"));
                     cell.className = "cell";
-                    var img = cell.appendChild(document.createElement("img"));
-                    var sku = cell.appendChild(document.createElement("div"));
+                    let img = cell.appendChild(document.createElement("img"));
+                    let sku = cell.appendChild(document.createElement("div"));
                     sku.className = "sku";
                     let filename_chunks = file.name.split('.');
                     filename_chunks.pop();
