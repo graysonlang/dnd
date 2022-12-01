@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      body {
+        background-color: #111;
+        color: #ccc;
+        margin: 0;
+      }
+      .dropzone {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        background: rgba(128, 128, 128, 0.2);
+        opacity: 0;
+        transition: opacity 175ms;
+      }
+      .dropzone.active {
+        opacity: 1;
+      }
+    </style>
+    <script>
+      window.addEventListener('load', () => {
+        if (window.FileList && window.File) {
+          const dropzone = document.body.appendChild(document.createElement("div"));
+          dropzone.className = 'dropzone';
+          ['dragenter'].forEach(type => window.addEventListener(type, () => dropzone.classList.add("active")));
+          ['dragleave', 'drop'].forEach(type => window.addEventListener(type, () => dropzone.classList.remove("active")));
+          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(type => window.addEventListener(type, event => event.preventDefault(), event.stopPropagation()));
+
+          window.addEventListener('dragover', event => event.dataTransfer.dropEffect = 'copy' );
+          window.addEventListener('drop', event => scanItems(event.dataTransfer.items, resolve) );
+        }
+      });
+
+      async function scanItems(items, callback) {
+        var dirs_to_load = 0;
+        let file_entries = [];
+        function traverse(entry) {
+          if (entry.isFile) {
+            file_entries.push(entry);
+          } else if (entry.isDirectory) {
+            ++dirs_to_load;
+            var reader = entry.createReader();
+            reader.readEntries((entries) => {
+              entries.forEach((entry) => {
+                traverse(entry);
+              });
+              --dirs_to_load;
+              if (dirs_to_load == 0) {
+                setTimeout(callback(file_entries));
+              }
+            });
+          }
+        }
+        for (var item of event.dataTransfer.items) {
+          if (item.kind == 'file') {
+            traverse(await item.webkitGetAsEntry());
+          }
+        }
+      }
+
+      function resolve(file_entries) {
+        file_entries.sort((a, b) => {
+          const nameA = a.fullPath.toUpperCase();
+          const nameB = b.fullPath.toUpperCase();
+          if (nameA > nameB) return 1;
+          if (nameA < nameB) return -1;
+          return 0;
+        });
+        for (entry of file_entries) {
+          console.log(entry.fullPath)
+        }
+      }
+
+    </script>
+  </head>
+  <body></body>
+</html>
