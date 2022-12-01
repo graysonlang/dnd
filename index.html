@@ -74,6 +74,8 @@
 
       window.addEventListener('load', () => {
         if (window.FileList && window.File) {
+          const grid = document.body.appendChild(document.createElement("div"));
+          grid.className = 'grid';
           const dropzone = document.body.appendChild(document.createElement("div"));
           dropzone.className = 'dropzone';
           ['dragenter'].forEach(
@@ -137,5 +139,5 @@
       }
     </script>
   </head>
-  <body><div class="grid"></div></body>
+  <body></body>
 </html>
