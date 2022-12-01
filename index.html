@@ -54,7 +54,6 @@
         switch(file.type) {
           case 'image/jpeg':
           case 'image/png':
-          case 'image/gif':
           // console.log(`${path} (type: ${file.type}, size: ${file.size})`);
           cells.push(
             {
@@ -66,10 +65,6 @@
         if (filesAwaitingRead == 0) {
           attachThumbnails();
         }
-      }
-
-      function handleFileReadError(error) {
-        filesAwaitingRead--;
       }
 
       window.addEventListener('load', () => {
@@ -85,7 +80,7 @@
           ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(
             type => window.addEventListener(type, event => event.preventDefault(), event.stopPropagation()));
           window.addEventListener('dragover', event => event.dataTransfer.dropEffect = 'copy' );
-          window.addEventListener('drop', event => scanItems(event.dataTransfer.items, resolve) );
+          window.addEventListener('drop', event => scanItems(event.dataTransfer.items, process_file_entries) );
         }
       });
 
@@ -94,7 +89,13 @@
         let file_entries = [];
         function traverse(entry) {
           if (entry.isFile) {
-            file_entries.push(entry);
+            let extension = entry.name.split('.').pop();
+            switch(extension.toLowerCase()) {
+            case 'jpeg':
+            case 'jpg':
+            case 'png':
+              file_entries.push(entry);
+            }
           } else if (entry.isDirectory) {
             ++dirs_to_load;
             var reader = entry.createReader();
@@ -119,22 +120,36 @@
         }
       }
 
-      function resolve(file_entries) {
-        file_entries.sort((a, b) => {
+      function process_file_entries(entries) {
+        entries.sort((a, b) => {
           const nameA = a.fullPath.toUpperCase();
           const nameB = b.fullPath.toUpperCase();
           if (nameA > nameB) return 1;
           if (nameA < nameB) return -1;
           return 0;
         });
-        for (let entry of file_entries) {
-          filesAwaitingRead++;
-          if (entry) {
-            entry.file(
-              file => handleFileRead(file, entry.fullPath),
-              file => handleFileReadError(exception)
-            );
-          }
+        if (entries.length) {
+          setTimeout(generate_thumbnails(entries));
+        }
+      }
+
+      function generate_thumbnails(entries) {
+        let entry = entries.shift();
+        if (entry) {
+          console.log(entry.fullPath);
+          entry.file(
+            file => {
+              filesAwaitingRead--;
+              console.log(entry.fullPath);
+              setTimeout(generate_thumbnails(entries));
+            },
+            error => {
+              filesAwaitingRead--;
+              console.log(entry.fullPath);
+              console.log(error);
+              setTimeout(generate_thumbnails(entries));
+            }
+          );
         }
       }
     </script>
