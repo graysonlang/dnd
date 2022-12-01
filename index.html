@@ -2,7 +2,7 @@
 <html lang="en-US">
   <head>
     <meta charset="UTF-8">
-    <title> </title>
+    <title>Look Book</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <link rel="stylesheet" href="style.css">
@@ -21,6 +21,8 @@
       const context = canvas.getContext("2d", { alpha: true, antialias: false, desynchronized: true, willReadFrequently: true });
 
       window.addEventListener('load', () => {
+        const today = new Date().toISOString().split('T')[0];
+        document.title = `Look Book - ${today}`;
         if (window.FileList && window.File) {
           const grid = document.body.appendChild(document.createElement("div"));
           grid.className = 'grid';
