@@ -17,8 +17,6 @@
       const scale = window.devicePixelRatio;
       canvas.height = Math.floor(desired_height * scale);
       canvas.width = Math.floor(desired_width * scale);
-      // canvas.style.border = "1px solid";
-      // document.body.appendChild(canvas);
 
       const context = canvas.getContext("2d", { alpha: true, antialias: false, desynchronized: true, willReadFrequently: true });
 
@@ -99,7 +97,7 @@
               switch(file.type) {
               case 'image/jpeg':
               case 'image/png':
-                // console.log(`${entry.fullPath} (type: ${file.type}, size: ${file.size})`);
+                console.log(`${entry.fullPath} (type: ${file.type}, size: ${file.size})`);
                 const reader = new FileReader();
                 reader.addEventListener('load', event => {
                   let texture = new Image();
