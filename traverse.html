@@ -27,10 +27,12 @@
         if (window.FileList && window.File) {
           const dropzone = document.body.appendChild(document.createElement("div"));
           dropzone.className = 'dropzone';
-          ['dragenter'].forEach(type => window.addEventListener(type, () => dropzone.classList.add("active")));
-          ['dragleave', 'drop'].forEach(type => window.addEventListener(type, () => dropzone.classList.remove("active")));
-          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(type => window.addEventListener(type, event => event.preventDefault(), event.stopPropagation()));
-
+          ['dragenter'].forEach(
+            type => window.addEventListener(type, () => dropzone.classList.add("active")));
+          ['dragleave', 'drop'].forEach(
+            type => window.addEventListener(type, () => dropzone.classList.remove("active")));
+          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(
+            type => window.addEventListener(type, event => event.preventDefault(), event.stopPropagation()));
           window.addEventListener('dragover', event => event.dataTransfer.dropEffect = 'copy' );
           window.addEventListener('drop', event => scanItems(event.dataTransfer.items, resolve) );
         }
@@ -50,16 +52,19 @@
                 traverse(entry);
               });
               --dirs_to_load;
-              if (dirs_to_load == 0) {
+              if (!dirs_to_load) {
                 setTimeout(callback(file_entries));
               }
             });
           }
         }
-        for (var item of event.dataTransfer.items) {
+        for (let item of event.dataTransfer.items) {
           if (item.kind == 'file') {
             traverse(await item.webkitGetAsEntry());
           }
+        }
+        if (!dirs_to_load) {
+          setTimeout(callback(file_entries));
         }
       }
 
@@ -71,7 +76,7 @@
           if (nameA < nameB) return -1;
           return 0;
         });
-        for (entry of file_entries) {
+        for (let entry of file_entries) {
           console.log(entry.fullPath)
         }
       }

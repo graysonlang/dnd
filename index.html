@@ -55,7 +55,7 @@
           case 'image/jpeg':
           case 'image/png':
           case 'image/gif':
-          // console.log(`${path}${file.name} (type: ${file.type}, size: ${file.size})`);
+          // console.log(`${path} (type: ${file.type}, size: ${file.size})`);
           cells.push(
             {
               name: path + file.name,
@@ -72,60 +72,70 @@
         filesAwaitingRead--;
       }
 
-      function onLoad() {
+      window.addEventListener('load', () => {
         if (window.FileList && window.File) {
-          const dropzone = document.querySelector('.dropzone');
-
-          ['dragenter'].forEach(type => {
-            window.addEventListener(type, () => { dropzone.classList.add("active"); });
-          });
-
-          ['dragleave', 'drop'].forEach(type => {
-            window.addEventListener(type, () => { dropzone.classList.remove("active"); });
-          });
-
-          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(type => {
-            window.addEventListener(type, event => {
-              event.preventDefault();
-              event.stopPropagation();
-            });
-          });
-
-          window.addEventListener('dragover', event => {
-            event.dataTransfer.dropEffect = 'copy';
-          });
-
-          window.addEventListener('drop', event => {
-            var items = event.dataTransfer.items;
-            for (var item of items) {
-              traverse(item.webkitGetAsEntry());;
-            }
-          });
+          const dropzone = document.body.appendChild(document.createElement("div"));
+          dropzone.className = 'dropzone';
+          ['dragenter'].forEach(
+            type => window.addEventListener(type, () => dropzone.classList.add("active")));
+          ['dragleave', 'drop'].forEach(
+            type => window.addEventListener(type, () => dropzone.classList.remove("active")));
+          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(
+            type => window.addEventListener(type, event => event.preventDefault(), event.stopPropagation()));
+          window.addEventListener('dragover', event => event.dataTransfer.dropEffect = 'copy' );
+          window.addEventListener('drop', event => scanItems(event.dataTransfer.items, resolve) );
         }
+      });
 
-        function traverse(entry, path) {
-          if (entry) {
-            path = path || "";
-            if (entry.isFile) {
-              filesAwaitingRead++;
-              entry.file(
-                file => handleFileRead(file, path),
-                file => handleFileReadError(exception)
-              );
-            } else if (entry.isDirectory) {
-              var reader = entry.createReader();
-              reader.readEntries(entries => {
-                for (var i = 0; i < entries.length; ++i) {
-                  traverse(entries[i], path + entry.name + "/");
-                }
+      async function scanItems(items, callback) {
+        var dirs_to_load = 0;
+        let file_entries = [];
+        function traverse(entry) {
+          if (entry.isFile) {
+            file_entries.push(entry);
+          } else if (entry.isDirectory) {
+            ++dirs_to_load;
+            var reader = entry.createReader();
+            reader.readEntries((entries) => {
+              entries.forEach((entry) => {
+                traverse(entry);
               });
-            }
+              --dirs_to_load;
+              if (!dirs_to_load) {
+                setTimeout(callback(file_entries));
+              }
+            });
+          }
+        }
+        for (let item of event.dataTransfer.items) {
+          if (item.kind == 'file') {
+            traverse(await item.webkitGetAsEntry());
+          }
+        }
+        if (!dirs_to_load) {
+          setTimeout(callback(file_entries));
+        }
+      }
+
+      function resolve(file_entries) {
+        file_entries.sort((a, b) => {
+          const nameA = a.fullPath.toUpperCase();
+          const nameB = b.fullPath.toUpperCase();
+          if (nameA > nameB) return 1;
+          if (nameA < nameB) return -1;
+          return 0;
+        });
+        for (let entry of file_entries) {
+          filesAwaitingRead++;
+          if (entry) {
+            entry.file(
+              file => handleFileRead(file, entry.fullPath),
+              file => handleFileReadError(exception)
+            );
           }
         }
       }
-      window.addEventListener('load', onLoad);
     </script>
   </head>
-  <body><div class="grid"></div><div class="dropzone"></div>
-  </body>
+  <body><div class="grid"></div></body>
 </html>
