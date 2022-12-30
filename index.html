@@ -3,10 +3,13 @@
   <head>
     <meta charset="UTF-8">
     <title>Look Book</title>
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <script type="module">
+      let loaded_count = 0;
+
       const desired_aspect_ratio = 7 / 4; // 1.75 : 1, from 2.625 x 1.5
       const desired_height = 700;
       const desired_width = desired_height / desired_aspect_ratio;
@@ -61,6 +64,7 @@
             case 'jpeg':
             case 'jpg':
             case 'png':
+            case 'webp':
               file_entries.push(entry);
             }
           } else if (entry.isDirectory) {
@@ -91,6 +95,7 @@
       function process_file_entries(file_entries) {
         if (file_entries.length == 0) {
           print();
+          console.log(loaded_count + " images loaded.");
         }
         let entry = file_entries.shift();
         if (entry) {
@@ -99,6 +104,8 @@
               switch(file.type) {
               case 'image/jpeg':
               case 'image/png':
+              case 'image/webp':
+                loaded_count++;
                 console.log(`${entry.fullPath} (type: ${file.type}, size: ${file.size})`);
                 const reader = new FileReader();
                 reader.addEventListener('load', event => {

@@ -1,5 +1,7 @@
 * {
 /*  box-sizing: border-box;*/
+  orphans: 1;
+  widows: 1;
 }
 
 body {
@@ -78,8 +80,8 @@ img {
 }
 
 @page {
+  margin: .25in .5in 0in .5in;
   size: letter portrait;
-  margin: .25in 0 0 .625in;
 }
 
 @media only screen {
