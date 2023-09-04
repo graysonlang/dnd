@@ -1,0 +1,96 @@
+* {
+/*  box-sizing: border-box;*/
+  orphans: 1;
+  widows: 1;
+}
+
+body {
+  font-size: 0;
+  margin: 0px;
+  padding: 0px;
+  background-color: white;
+  color: black;
+}
+
+img {
+  break-inside: avoid;
+}
+
+.dropzone {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background: rgba(128, 128, 128, 0.2);
+  opacity: 0;
+  transition: opacity 175ms;
+}
+
+.dropzone.active {
+  opacity: 1;
+}
+
+.grid {
+  width: 100%;
+}
+
+.grid .cell {
+  box-sizing: border-box;
+  border: .5px solid;
+  border-color:  black;
+  break-inside: avoid;
+  display: inline-block;
+  position: relative;
+/*  margin: .0125in;*/
+  padding: 0;
+  width: 2.5in;
+  height: 2.625in;
+  flex-direction: row;
+}
+
+.cell img {
+  margin: auto 0;
+  width: 1.5in;
+  display: flex;
+  max-height: 2.625in;
+  object-fit: contain;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(0, -50%);
+}
+
+.cell .sku {
+/*  border: .25px dotted black;*/
+  font-family: sans-serif;
+  align-content: center;
+  display: flex;
+  flex-direction: column;
+  font-size: 10pt;
+  font-weight: bold;
+  justify-content: center;
+  right: 0;
+  top: 0;
+  padding: 0;
+  position: absolute;
+  text-align: center;
+  height: 2.625in;
+  width: 1in;
+}
+
+@page {
+  margin: .25in .5in 0in .5in;
+  size: letter portrait;
+}
+
+@media only screen {
+  body {
+    background-color: #111;
+    color: #ddd;
+  }
+
+  .grid .cell {
+    border-color: #ddd;
+  }
+}
